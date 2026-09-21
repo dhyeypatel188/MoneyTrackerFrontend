@@ -11,6 +11,7 @@ import {
   getMe,
   getToken,
   removeToken,
+  logout,
 } from "./api/client";
 import "./App.css";
 
@@ -31,7 +32,7 @@ export default function App() {
     if (token) {
       getMe()
         .then((res) => {
-          setCurrentUser(res.data);
+          setCurrentUser(res.data.responseObject?.data || res.data);
         })
         .catch(() => {
           removeToken();
@@ -53,7 +54,7 @@ export default function App() {
         Object.entries(activeFilters).filter(([, v]) => v !== "")
       );
       const res = await listExpenses(params);
-      setExpenses(res.data);
+      setExpenses(res.data.responseObject?.data || res.data);
     } catch (err) {
       if (err.response?.status === 401) {
         removeToken();
@@ -71,7 +72,7 @@ export default function App() {
     setLoadingSummary(true);
     try {
       const res = await getSummary();
-      setSummary(res.data);
+      setSummary(res.data.responseObject?.data || res.data);
     } catch {
       // summary errors are non-critical
     } finally {
@@ -102,11 +103,19 @@ export default function App() {
     setError("");
   };
 
-  const handleLogout = () => {
-    removeToken();
-    setCurrentUser(null);
-    setExpenses([]);
-    setSummary(null);
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.warn("Logout error:", err);
+    } finally {
+      removeToken();
+      setCurrentUser(null);
+      setExpenses([]);
+      setSummary(null);
+      setFilters({});
+      setError("");
+    }
   };
 
   if (authChecking) {

@@ -27,18 +27,21 @@ export default function AuthCard({ onAuthSuccess }) {
         await register(username.trim(), password);
         // Then auto-login
         const loginRes = await login(username.trim(), password);
-        setToken(loginRes.data.access_token);
+        const token = loginRes.data.access_token || loginRes.data.responseObject?.data?.access_token;
+        setToken(token);
         const meRes = await getMe();
-        onAuthSuccess(meRes.data);
+        onAuthSuccess(meRes.data.responseObject?.data || meRes.data);
       } else {
         // Login directly
         const res = await login(username.trim(), password);
-        setToken(res.data.access_token);
+        const token = res.data.access_token || res.data.responseObject?.data?.access_token;
+        setToken(token);
         const meRes = await getMe();
-        onAuthSuccess(meRes.data);
+        onAuthSuccess(meRes.data.responseObject?.data || meRes.data);
       }
     } catch (err) {
       const detail =
+        err.response?.data?.responseStatusList?.statusList?.[0]?.statusDesc ||
         err.response?.data?.detail ||
         (Array.isArray(err.response?.data)
           ? err.response.data[0]?.msg

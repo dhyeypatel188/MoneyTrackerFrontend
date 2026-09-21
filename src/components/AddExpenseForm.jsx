@@ -35,8 +35,11 @@ export default function AddExpenseForm({ onAdded }) {
       setForm({ ...form, amount: "", note: "" });
       onAdded();
     } catch (err) {
+      const statusDesc = err.response?.data?.responseStatusList?.statusList?.[0]?.statusDesc;
       const detail = err.response?.data?.detail;
-      if (Array.isArray(detail)) {
+      if (statusDesc) {
+        setError(statusDesc);
+      } else if (Array.isArray(detail)) {
         setError(detail.map((d) => d.msg).join(", "));
       } else {
         setError(detail || "Failed to add expense.");
